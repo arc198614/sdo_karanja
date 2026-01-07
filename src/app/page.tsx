@@ -5,9 +5,12 @@ import {
     CheckCircle2,
     AlertCircle,
     TrendingUp,
-    ArrowUpRight
+    ArrowUpRight,
+    HelpCircle,
+    PlusCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -99,6 +102,3 @@ export default async function Home() {
         </div>
     );
 }
-
-import { HelpCircle, PlusCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
