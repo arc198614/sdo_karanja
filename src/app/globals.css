@@ -29,7 +29,6 @@ body {
         border: 1px solid rgba(255, 255, 255, 0.4);
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
         border-radius: 1.5rem;
-        /* rounded-3xl */
     }
 
     .premium-card {
@@ -39,12 +38,22 @@ body {
         border: 1px solid rgba(255, 255, 255, 0.4);
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
         border-radius: 1.5rem;
-        /* rounded-3xl */
-        @apply p-6 hover:shadow-2xl hover:shadow-indigo-500/10 transition-all duration-500 hover:-translate-y-1 active:scale-[0.98];
+        padding: 1.5rem;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .premium-card:hover {
+        transform: translateY(-0.25rem);
+        box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.1), 0 10px 10px -5px rgba(79, 70, 229, 0.04);
+    }
+
+    .premium-card:active {
+        transform: scale(0.98);
     }
 
     .gradient-text {
         background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        background-clip: text;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
