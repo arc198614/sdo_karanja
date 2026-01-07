@@ -21,10 +21,27 @@ export async function appendSheetData(range: string, values: any[][]) {
     });
 }
 
+interface Question {
+    id: string;
+    department: string;
+    text: string;
+    mandatory: boolean;
+    marks: number;
+}
+
+interface InspectionLog {
+    id: string;
+    date: string;
+    saja: string;
+    vro: string;
+    officer: string;
+    status: string;
+}
+
 // Custom Fetchers
-export async function getQuestions() {
+export async function getQuestions(): Promise<Question[]> {
     const values = await getSheetData('Question_Master!A2:E');
-    return values?.map(row => ({
+    return values?.map((row: any[]) => ({
         id: row[0],
         department: row[1],
         text: row[2],
@@ -33,9 +50,9 @@ export async function getQuestions() {
     })) || [];
 }
 
-export async function getInspectionLogs() {
+export async function getInspectionLogs(): Promise<InspectionLog[]> {
     const values = await getSheetData('Inspection_Log!A2:F');
-    return values?.map(row => ({
+    return values?.map((row: any[]) => ({
         id: row[0],
         date: row[1],
         saja: row[2],
@@ -46,10 +63,11 @@ export async function getInspectionLogs() {
 }
 
 export async function getStats() {
-    const qCount = (await getQuestions()).length;
+    const questions = await getQuestions();
     const logs = await getInspectionLogs();
+
     const pending = logs.filter(l => l.status === 'PENDING' || l.status === 'प्रलंबित').length;
     const completed = logs.filter(l => l.status === 'COMPLETED' || l.status === 'पूर्ण').length;
 
-    return { totalQuestions: qCount, pending, completed, totalLogs: logs.length };
+    return { totalQuestions: questions.length, pending, completed, totalLogs: logs.length };
 }

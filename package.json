@@ -9,25 +9,28 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "lucide-react": "latest",
-    "framer-motion": "latest",
-    "google-auth-library": "latest",
-    "googleapis": "latest",
-    "clsx": "latest",
-    "tailwind-merge": "latest",
-    "uuid": "latest"
+    "next": "15.1.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "lucide-react": "^0.468.0",
+    "framer-motion": "^11.13.1",
+    "google-auth-library": "^9.15.0",
+    "googleapis": "^144.0.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.5",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
-    "typescript": "latest",
-    "@types/node": "latest",
-    "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "@types/uuid": "latest",
-    "postcss": "latest",
-    "tailwindcss": "latest",
-    "@tailwindcss/postcss": "latest"
+    "typescript": "^5.7.2",
+    "@types/node": "^20.17.9",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.1",
+    "@types/uuid": "^10.0.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "4.0.0-alpha.31",
+    "@tailwindcss/postcss": "4.0.0-alpha.31"
+  },
+  "engines": {
+    "node": ">=18.17.0"
   }
 }
