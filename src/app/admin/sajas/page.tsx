@@ -57,10 +57,11 @@ export default function SajaSettings() {
             if (res.ok) {
                 setMessage({ type: 'success', text: 'गावांची यादी यशस्वीरित्या जतन केली!' });
             } else {
-                throw new Error();
+                const data = await res.json();
+                throw new Error(data.error || 'Unknown error');
             }
-        } catch (error) {
-            setMessage({ type: 'error', text: 'जतन करताना चूक झाली. कृपया पुन्हा प्रयत्न करा.' });
+        } catch (error: any) {
+            setMessage({ type: 'error', text: error.message || 'जतन करताना चूक झाली. कृपया "Saja_Master" टॅब तपास' });
         } finally {
             setSaving(false);
         }

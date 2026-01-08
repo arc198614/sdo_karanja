@@ -32,7 +32,7 @@ export default function NewInspection() {
         vroName: '',
         officer: '',
         date: new Date().toISOString().split('T')[0],
-        responses: {} as Record<string, { marks: number, remarks: string, files: string[] }>
+        responses: {} as Record<string, { selection: 'YES' | 'NO' | null, marks: number, remarks: string, files: string[] }>
     });
     const [loading, setLoading] = useState(true);
 
@@ -73,7 +73,7 @@ export default function NewInspection() {
             const res = await fetch('/api/upload', { method: 'POST', body: formDataUpload });
             const data = await res.json();
             if (data.success) {
-                const currentResponse = formData.responses[questionId] || { marks: 0, remarks: '', files: [] };
+                const currentResponse = formData.responses[questionId] || { selection: null, marks: 0, remarks: '', files: [] };
                 setFormData({
                     ...formData,
                     responses: {
@@ -107,22 +107,45 @@ export default function NewInspection() {
         });
     };
 
-    const handleResponseChange = (questionId: string, field: 'marks' | 'remarks', value: any) => {
-        const currentResponse = formData.responses[questionId] || { marks: 0, remarks: '', files: [] };
+    const handleResponseChange = (questionId: string, field: string, value: any) => {
+        const currentResponse = formData.responses[questionId] || { selection: null, marks: 0, remarks: '', files: [] };
+
+        // Logical update: If choice is YES, set full marks. If NO, set 0 marks.
+        let updatedResponse = { ...currentResponse, [field]: value };
+        if (field === 'selection') {
+            const question = questions.find(q => q.id === questionId);
+            updatedResponse.marks = value === 'YES' ? (question?.marks || 0) : 0;
+        }
+
         setFormData({
             ...formData,
             responses: {
                 ...formData.responses,
-                [questionId]: { ...currentResponse, [field]: value }
+                [questionId]: updatedResponse
             }
         });
     };
 
+    const [submitting, setSubmitting] = useState(false);
+
     const handleSubmit = async () => {
-        // In a real application, you would send formData to an API here
-        // For this example, we just transition to the success step
-        console.log('Submitting form data:', formData);
-        setStep(3); // Success state
+        setSubmitting(true);
+        try {
+            const res = await fetch('/api/inspections', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            if (res.ok) {
+                setStep(3); // Success state
+            } else {
+                alert('तपासणी जतन करताना अडचण आली. कृपया पुन्हा प्रयत्न करा.');
+            }
+        } catch (error) {
+            alert('सर्व्हर एरर. इंटरनेट कनेक्शन तपासा.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     if (loading) return (
@@ -252,7 +275,9 @@ export default function NewInspection() {
                             </div>
                             <div className="text-right">
                                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest">प्रगती</p>
-                                <p className="text-2xl font-black text-indigo-600 tabular-nums">०%</p>
+                                <p className="text-2xl font-black text-indigo-600 tabular-nums">
+                                    {Math.round((Object.keys(formData.responses).filter(id => formData.responses[id].selection).length / questions.length) * 100) || 0}%
+                                </p>
                             </div>
                         </div>
 
@@ -272,20 +297,20 @@ export default function NewInspection() {
                                         <div className="grid grid-cols-2 gap-4">
                                             <button
                                                 type="button"
-                                                onClick={() => handleResponseChange(q.id, 'marks', q.marks)}
+                                                onClick={() => handleResponseChange(q.id, 'selection', 'YES')}
                                                 className={cn(
                                                     "py-4 border-2 rounded-2xl font-black transition-all",
-                                                    response.marks === q.marks ? "bg-emerald-50 border-emerald-500 text-emerald-700" : "border-slate-100 text-slate-400 hover:bg-slate-50"
+                                                    response.selection === 'YES' ? "bg-emerald-50 border-emerald-500 text-emerald-700 shadow-lg shadow-emerald-100" : "border-slate-100 text-slate-400 hover:bg-slate-50"
                                                 )}
                                             >
                                                 हो
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => handleResponseChange(q.id, 'marks', 0)}
+                                                onClick={() => handleResponseChange(q.id, 'selection', 'NO')}
                                                 className={cn(
                                                     "py-4 border-2 rounded-2xl font-black transition-all",
-                                                    response.marks === 0 && response.remarks ? "bg-rose-50 border-rose-500 text-rose-700" : "border-slate-100 text-slate-400 hover:bg-slate-50"
+                                                    response.selection === 'NO' ? "bg-rose-50 border-rose-500 text-rose-700 shadow-lg shadow-rose-100" : "border-slate-100 text-slate-400 hover:bg-slate-50"
                                                 )}
                                             >
                                                 नाही
@@ -345,7 +370,14 @@ export default function NewInspection() {
 
                         <div className="flex gap-4 pb-20">
                             <button onClick={() => setStep(1)} className="flex-1 py-5 border-2 border-slate-200 text-slate-500 rounded-3xl font-black text-lg hover:bg-slate-50 transition-all flex items-center justify-center gap-2"><ChevronLeft size={20} /> मागे</button>
-                            <button onClick={handleSubmit} className="flex-[2] py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl hover:shadow-2xl hover:shadow-indigo-200 flex items-center justify-center gap-2 shadow-xl shadow-indigo-50"><Save size={20} /> तपासणी सादर करा</button>
+                            <button
+                                onClick={handleSubmit}
+                                disabled={submitting}
+                                className="flex-[2] py-5 bg-indigo-600 text-white rounded-3xl font-black text-xl hover:shadow-2xl hover:shadow-indigo-200 flex items-center justify-center gap-2 shadow-xl shadow-indigo-50 disabled:opacity-50"
+                            >
+                                {submitting ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
+                                {submitting ? 'जतन होत आहे...' : 'तपासणी सादर करा'}
+                            </button>
                         </div>
                     </motion.div>
                 )}

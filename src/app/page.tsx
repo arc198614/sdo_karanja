@@ -67,20 +67,27 @@ export default async function Home() {
                     </div>
 
                     <div className="space-y-8">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="flex items-center gap-6 group cursor-pointer">
+                        {stats.recentLogs.map((log: any, i: number) => (
+                            <Link key={log.id} href="/inspection/log" className="flex items-center gap-6 group cursor-pointer">
                                 <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center font-bold text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
-                                    ०{i}
+                                    {String(i + 1).padStart(2, '0')}
                                 </div>
                                 <div className="flex-1">
-                                    <h4 className="font-bold text-lg text-slate-800">सजा {i === 1 ? 'करंज' : i === 2 ? 'साठवणे' : 'रहीमपूर'} - तपासणी पूर्ण</h4>
-                                    <p className="text-slate-500 text-sm">तपासणी अधिकारी: श्री. पाटील | २ तास पूर्वी</p>
+                                    <h4 className="font-bold text-lg text-slate-800">सजा {log.saja} - तपासणी पूर्ण</h4>
+                                    <p className="text-slate-500 text-sm">तपासणी अधिकारी: {log.officer} | {log.date}</p>
                                 </div>
-                                <div className="px-4 py-1.5 bg-green-50 text-green-700 rounded-full text-xs font-black uppercase tracking-widest">
-                                    Success
+                                <div className={cn(
+                                    "px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest",
+                                    log.status === 'COMPLETED' || log.status === 'पूर्ण' ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                                )}>
+                                    {log.status === 'COMPLETED' || log.status === 'पूर्ण' ? 'यशस्वी' : 'प्रलंबित'}
                                 </div>
-                            </div>
+                            </Link>
                         ))}
+
+                        {stats.recentLogs.length === 0 && (
+                            <p className="text-center text-slate-400 py-10 font-bold italic">आज कोणतीही नोंद आढळली नाही.</p>
+                        )}
                     </div>
                 </div>
 

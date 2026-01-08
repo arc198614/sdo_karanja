@@ -100,5 +100,11 @@ export async function getStats() {
     const pending = logs.filter(l => l.status === 'PENDING' || l.status === 'प्रलंबित').length;
     const completed = logs.filter(l => l.status === 'COMPLETED' || l.status === 'पूर्ण').length;
 
-    return { totalQuestions: questions.length, pending, completed, totalLogs: logs.length };
+    return {
+        totalQuestions: questions.length,
+        pending,
+        completed,
+        totalLogs: logs.length,
+        recentLogs: logs.reverse().slice(0, 5)
+    };
 }
