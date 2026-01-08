@@ -9,9 +9,15 @@ import {
     MapPin,
     Calendar,
     User,
+    Plus,
     Check,
     Save,
-    Loader2
+    Loader2,
+    Upload,
+    X,
+    FileText,
+    Image as ImageIcon,
+    File
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,7 +32,7 @@ export default function NewInspection() {
         vroName: '',
         officer: '',
         date: new Date().toISOString().split('T')[0],
-        responses: {} as Record<string, { marks: number, remarks: string }>
+        responses: {} as Record<string, { marks: number, remarks: string, files: string[] }>
     });
     const [loading, setLoading] = useState(true);
 
@@ -55,7 +61,67 @@ export default function NewInspection() {
         fetchData();
     }, []);
 
+    const [uploadingFile, setUploadingFile] = useState<string | null>(null);
+
+    const handleQuestionFileUpload = async (questionId: string, file: File) => {
+        setUploadingFile(questionId);
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        formDataUpload.append('sajaName', formData.saja || 'Inspection_Evidence');
+
+        try {
+            const res = await fetch('/api/upload', { method: 'POST', body: formDataUpload });
+            const data = await res.json();
+            if (data.success) {
+                const currentResponse = formData.responses[questionId] || { marks: 0, remarks: '', files: [] };
+                setFormData({
+                    ...formData,
+                    responses: {
+                        ...formData.responses,
+                        [questionId]: {
+                            ...currentResponse,
+                            files: [...(currentResponse.files || []), data.link]
+                        }
+                    }
+                });
+            }
+        } catch (error) {
+            alert('फाईल अपलोड करताना चूक झाली.');
+        } finally {
+            setUploadingFile(null);
+        }
+    };
+
+    const removeQuestionFile = (questionId: string, fileUrl: string) => {
+        const currentResponse = formData.responses[questionId];
+        if (!currentResponse) return;
+        setFormData({
+            ...formData,
+            responses: {
+                ...formData.responses,
+                [questionId]: {
+                    ...currentResponse,
+                    files: currentResponse.files.filter(f => f !== fileUrl)
+                }
+            }
+        });
+    };
+
+    const handleResponseChange = (questionId: string, field: 'marks' | 'remarks', value: any) => {
+        const currentResponse = formData.responses[questionId] || { marks: 0, remarks: '', files: [] };
+        setFormData({
+            ...formData,
+            responses: {
+                ...formData.responses,
+                [questionId]: { ...currentResponse, [field]: value }
+            }
+        });
+    };
+
     const handleSubmit = async () => {
+        // In a real application, you would send formData to an API here
+        // For this example, we just transition to the success step
+        console.log('Submitting form data:', formData);
         setStep(3); // Success state
     };
 
@@ -191,27 +257,90 @@ export default function NewInspection() {
                         </div>
 
                         <div className="space-y-6">
-                            {questions.map((q, i) => (
-                                <div key={q.id} className="premium-card !p-10 space-y-6 border-l-8 border-indigo-600">
-                                    <div className="flex justify-between items-start gap-4">
-                                        <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 bg-slate-50 px-3 py-1 rounded-lg"># {q.id}</span>
-                                        <div className="flex items-center gap-2 text-indigo-600/40 font-black italic">
-                                            {q.marks} गुण
+                            {questions.map((q, i) => {
+                                const response = formData.responses[q.id] || { marks: 0, remarks: '', files: [] };
+                                return (
+                                    <div key={q.id} className="premium-card !p-10 space-y-6 border-l-8 border-indigo-600">
+                                        <div className="flex justify-between items-start gap-4">
+                                            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 bg-slate-50 px-3 py-1 rounded-lg"># {q.id}</span>
+                                            <div className="flex items-center gap-2 text-indigo-600/40 font-black italic">
+                                                {q.marks} गुण
+                                            </div>
                                         </div>
-                                    </div>
-                                    <h4 className="text-xl font-bold text-slate-800 leading-relaxed">{q.text}</h4>
+                                        <h4 className="text-xl font-bold text-slate-800 leading-relaxed">{q.text}</h4>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <button className="py-4 border-2 border-slate-100 rounded-2xl font-black hover:bg-emerald-50 hover:border-emerald-500 hover:text-emerald-700 text-slate-400 transition-all">हो</button>
-                                        <button className="py-4 border-2 border-slate-100 rounded-2xl font-black hover:bg-rose-50 hover:border-rose-500 hover:text-rose-700 text-slate-400 transition-all">नाही</button>
-                                    </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleResponseChange(q.id, 'marks', q.marks)}
+                                                className={cn(
+                                                    "py-4 border-2 rounded-2xl font-black transition-all",
+                                                    response.marks === q.marks ? "bg-emerald-50 border-emerald-500 text-emerald-700" : "border-slate-100 text-slate-400 hover:bg-slate-50"
+                                                )}
+                                            >
+                                                हो
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleResponseChange(q.id, 'marks', 0)}
+                                                className={cn(
+                                                    "py-4 border-2 rounded-2xl font-black transition-all",
+                                                    response.marks === 0 && response.remarks ? "bg-rose-50 border-rose-500 text-rose-700" : "border-slate-100 text-slate-400 hover:bg-slate-50"
+                                                )}
+                                            >
+                                                नाही
+                                            </button>
+                                        </div>
 
-                                    <textarea
-                                        className="w-full p-4 bg-slate-50 rounded-xl border-none outline-none focus:ring-2 focus:ring-indigo-100 font-medium text-sm italic"
-                                        placeholder="काही त्रुटी आढळल्यास येथे लिहा..."
-                                    />
-                                </div>
-                            ))}
+                                        <div className="space-y-4">
+                                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest flex justify-between items-center">
+                                                <span>पुराव्यासाठी दस्तऐवज / फोटो</span>
+                                                <span className="text-[10px]">{response.files?.length || 0} फाईल्स</span>
+                                            </label>
+
+                                            <div className="flex flex-wrap gap-3">
+                                                {response.files?.map((fileUrl, fIdx) => (
+                                                    <div key={fIdx} className="flex items-center gap-2 p-2 bg-indigo-50 rounded-xl text-indigo-700 text-xs font-bold border border-indigo-100 group relative">
+                                                        <FileText size={14} />
+                                                        <span className="truncate max-w-[100px]">पुराव्या {fIdx + 1}</span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeQuestionFile(q.id, fileUrl)}
+                                                            className="text-rose-500 hover:text-rose-700 ml-1"
+                                                        >
+                                                            <X size={14} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+
+                                                <label className="cursor-pointer flex items-center gap-2 p-2 bg-white border-2 border-dashed border-slate-200 rounded-xl text-slate-500 text-xs font-bold hover:border-indigo-400 hover:text-indigo-600 transition-all">
+                                                    {uploadingFile === q.id ? (
+                                                        <Loader2 size={14} className="animate-spin" />
+                                                    ) : (
+                                                        <Plus size={14} />
+                                                    )}
+                                                    {uploadingFile === q.id ? 'अपलोड...' : 'जोडा'}
+                                                    <input
+                                                        type="file"
+                                                        className="hidden"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) handleQuestionFileUpload(q.id, file);
+                                                        }}
+                                                    />
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <textarea
+                                            className="w-full p-4 bg-slate-50 rounded-xl border-none outline-none focus:ring-2 focus:ring-indigo-100 font-medium text-sm italic"
+                                            placeholder="काही त्रुटी आढळल्यास येथे लिहा..."
+                                            value={response.remarks}
+                                            onChange={(e) => handleResponseChange(q.id, 'remarks', e.target.value)}
+                                        />
+                                    </div>
+                                );
+                            })}
                         </div>
 
                         <div className="flex gap-4 pb-20">
