@@ -19,6 +19,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function NewInspection() {
     const [step, setStep] = useState(1);
     const [questions, setQuestions] = useState<any[]>([]);
+    const [sajas, setSajas] = useState<string[]>([]);
+    const [isManualSaja, setIsManualSaja] = useState(false);
     const [formData, setFormData] = useState({
         saja: '',
         vroName: '',
@@ -29,8 +31,12 @@ export default function NewInspection() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/api/questions').then(res => res.json()).then(data => {
-            setQuestions(data);
+        Promise.all([
+            fetch('/api/questions').then(res => res.json()),
+            fetch('/api/sajas').then(res => res.json()).catch(() => [])
+        ]).then(([qData, sData]) => {
+            setQuestions(qData);
+            setSajas(sData || []);
             setLoading(false);
         });
     }, []);
@@ -73,17 +79,45 @@ export default function NewInspection() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-3">
-                                <label className="flex items-center gap-2 text-sm font-black text-slate-700 uppercase tracking-widest"><MapPin size={16} /> सजाचे नाव</label>
-                                <select
-                                    className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold bg-slate-50/50"
-                                    value={formData.saja}
-                                    onChange={(e) => setFormData({ ...formData, saja: e.target.value })}
-                                >
-                                    <option value="">निवडा...</option>
-                                    <option>करंज</option>
-                                    <option>साठवणे</option>
-                                    <option>रहीमपूर</option>
-                                </select>
+                                <label className="flex items-center justify-between text-sm font-black text-slate-700 uppercase tracking-widest">
+                                    <div className="flex items-center gap-2"><MapPin size={16} /> सजाचे नाव</div>
+                                </label>
+
+                                {!isManualSaja ? (
+                                    <select
+                                        className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold bg-slate-50/50"
+                                        value={formData.saja}
+                                        onChange={(e) => {
+                                            if (e.target.value === 'MANUAL_ENTRY') {
+                                                setIsManualSaja(true);
+                                                setFormData({ ...formData, saja: '' });
+                                            } else {
+                                                setFormData({ ...formData, saja: e.target.value });
+                                            }
+                                        }}
+                                    >
+                                        <option value="">निवडा...</option>
+                                        {sajas.map(s => <option key={s} value={s}>{s}</option>)}
+                                        <option value="MANUAL_ENTRY">+ नवीन गाव/सजा टाका...</option>
+                                    </select>
+                                ) : (
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            autoFocus
+                                            placeholder="गावाचे नाव लिहा..."
+                                            className="w-full p-4 pr-12 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-bold bg-slate-50/50 uppercase"
+                                            value={formData.saja}
+                                            onChange={(e) => setFormData({ ...formData, saja: e.target.value })}
+                                        />
+                                        <button
+                                            onClick={() => { setIsManualSaja(false); setFormData({ ...formData, saja: '' }); }}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 font-black text-xs uppercase"
+                                        >
+                                            यादी पहा
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                             <div className="space-y-3">
                                 <label className="flex items-center gap-2 text-sm font-black text-slate-700 uppercase tracking-widest"><User size={16} /> ग्राम महसूल अधिकारी</label>

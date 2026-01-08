@@ -11,6 +11,11 @@ export async function getSheetData(range: string) {
     return response.data.values;
 }
 
+export async function getSajas(): Promise<string[]> {
+    const values = await getSheetData('Saja_Master!A2:A');
+    return values?.map((row: any[]) => row[0]).filter(Boolean) || [];
+}
+
 export async function appendSheetData(range: string, values: any[][]) {
     const sheets = getSheetsClient();
     await sheets.spreadsheets.values.append({
