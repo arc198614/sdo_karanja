@@ -12,8 +12,13 @@ export async function getSheetData(range: string) {
 }
 
 export async function getSajas(): Promise<string[]> {
-    const values = await getSheetData('Saja_Master!A2:A');
-    return values?.map((row: any[]) => row[0]).filter(Boolean) || [];
+    try {
+        const values = await getSheetData('Saja_Master!A2:A');
+        return values?.map((row: any[]) => row[0]).filter(Boolean) || [];
+    } catch (error) {
+        console.error('Saja_Master sheet not found or inaccessible');
+        return ['करंज', 'साठवणे', 'रहीमपूर']; // Default fallback
+    }
 }
 
 export async function appendSheetData(range: string, values: any[][]) {

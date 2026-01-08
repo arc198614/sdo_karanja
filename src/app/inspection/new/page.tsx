@@ -31,14 +31,28 @@ export default function NewInspection() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        Promise.all([
-            fetch('/api/questions').then(res => res.json()),
-            fetch('/api/sajas').then(res => res.json()).catch(() => [])
-        ]).then(([qData, sData]) => {
-            setQuestions(qData);
-            setSajas(sData || []);
-            setLoading(false);
-        });
+        const fetchData = async () => {
+            try {
+                const [qRes, sRes] = await Promise.all([
+                    fetch('/api/questions'),
+                    fetch('/api/sajas')
+                ]);
+
+                const qData = await qRes.json();
+                const sData = await sRes.json();
+
+                setQuestions(Array.isArray(qData) ? qData : []);
+                setSajas(Array.isArray(sData) ? sData : ['करंज', 'साठवणे', 'रहीमपूर']);
+            } catch (error) {
+                console.error('Fetch error:', error);
+                setQuestions([]);
+                setSajas(['करंज', 'साठवणे', 'रहीमपूर']);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
     }, []);
 
     const handleSubmit = async () => {
