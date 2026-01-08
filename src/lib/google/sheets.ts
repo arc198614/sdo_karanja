@@ -21,6 +21,18 @@ export async function getSajas(): Promise<string[]> {
     }
 }
 
+export async function updateSajas(sajas: string[]) {
+    const sheets = getSheetsClient();
+    await sheets.spreadsheets.values.clear({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Saja_Master!A2:A',
+    });
+
+    if (sajas.length > 0) {
+        await appendSheetData('Saja_Master!A2', sajas.map(s => [s]));
+    }
+}
+
 export async function appendSheetData(range: string, values: any[][]) {
     const sheets = getSheetsClient();
     await sheets.spreadsheets.values.append({

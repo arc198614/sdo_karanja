@@ -11,7 +11,9 @@ import {
     FileBarChart,
     Settings,
     LogOut,
-    PlusCircle
+    PlusCircle,
+    MapPin,
+    BarChart3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,8 +22,9 @@ const menuItems = [
     { name: 'प्रश्न मास्टर', icon: HelpCircle, path: '/admin/questions' },
     { name: 'नवीन तपासणी', icon: PlusCircle, path: '/inspection/new' },
     { name: 'तपासणी नोंदणी', icon: ClipboardList, path: '/inspection/log' },
-    { name: 'अहवाल', icon: FileBarChart, path: '/admin/reports' },
-    { name: 'पूर्तता (VRO)', icon: CheckCircle2, path: '/vro/compliance' },
+    { name: 'प्रलंबित कामे', path: '/vro/compliance', icon: CheckCircle2 },
+    { name: 'गाव व्यवस्थापन', path: '/admin/sajas', icon: MapPin },
+    { name: 'अहवाल', path: '/admin/reports', icon: BarChart3 },
 ];
 
 export default function Sidebar() {
