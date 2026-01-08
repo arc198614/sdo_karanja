@@ -23,13 +23,22 @@ export async function getSajas(): Promise<string[]> {
 
 export async function updateSajas(sajas: string[]) {
     const sheets = getSheetsClient();
-    await sheets.spreadsheets.values.clear({
-        spreadsheetId: SPREADSHEET_ID,
-        range: 'Saja_Master!A2:A',
-    });
+    try {
+        await sheets.spreadsheets.values.clear({
+            spreadsheetId: SPREADSHEET_ID,
+            range: 'Saja_Master!A2:A',
+        });
 
-    if (sajas.length > 0) {
-        await appendSheetData('Saja_Master!A2', sajas.map(s => [s]));
+        if (sajas.length > 0) {
+            await sheets.spreadsheets.values.update({
+                spreadsheetId: SPREADSHEET_ID,
+                range: 'Saja_Master!A2',
+                valueInputOption: 'RAW',
+                requestBody: { values: sajas.map(s => [s]) },
+            });
+        }
+    } catch (error: any) {
+        throw new Error('Google Sheet मध्ये "Saja_Master" नावाची टॅब (Sheet) सापडली नाही. कृपया ती तयार करा.');
     }
 }
 
